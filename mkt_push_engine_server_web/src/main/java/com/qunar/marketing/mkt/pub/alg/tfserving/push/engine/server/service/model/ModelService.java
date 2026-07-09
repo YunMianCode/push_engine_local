@@ -28,18 +28,38 @@ public class ModelService {
     @Resource
     private FeaturePlatformServer featurePlatformServer;
 
+    /**
+     * 根据模型名获取最新版本模型
+     * @param modelName 模型名称
+     * @return 模型实例
+     */
     public Model getModel(String modelName) {
         return modelManager.getModel(modelName, -1);
     }
 
+    /**
+     * 根据模型Key获取模型
+     * @param modelKey 模型Key
+     * @return 模型实例
+     */
     public Model getModelFromKey(String modelKey) {
         return modelManager.getModelFromKey(modelKey);
     }
 
+    /**
+     * 获取所有已加载模型名称
+     * @return 模型名称集合
+     */
     public Set<String> getModelNames() {
         return modelManager.modelContainer.keySet();
     }
 
+    /**
+     * 构建模型预测上下文
+     * <p>从请求中提取用户特征、物品特征，组装成模型可接受的格式
+     * @param request 预测请求
+     * @return 模型服务上下文
+     */
     public ModelServerContext buildContext(AlgoInnerRequest request) {
 
         ModelServerContext context = new ModelServerContext();
@@ -76,6 +96,11 @@ public class ModelService {
         return context;
     }
 
+    /**
+     * 执行模型计算
+     * @param modelServerContext 模型服务上下文
+     * @return 预测结果
+     */
     public PredictResult modelCalculate(ModelServerContext modelServerContext) {
         //Model model = modelManager.getModel(modelServerContext.getModelKey(), -1);
         Model model = modelManager.getModelFromKey(modelServerContext.getModelKey());
@@ -89,6 +114,12 @@ public class ModelService {
 
         return predictResult;
     }
+
+    /**
+     * 从上下文创建预测参数
+     * @param context 模型服务上下文
+     * @return 预测参数
+     */
     private PredictParam createPredictParamFromContext(ModelServerContext context) {
         PredictParam predictParam = new PredictParam();
         predictParam.setModelKey(context.getModelKey());
