@@ -29,12 +29,18 @@ public class ModelManager {
     public Map<String, Model> modelContainer = Maps.newConcurrentMap();
     private Map<String, Integer> modellist = Maps.newConcurrentMap();
     private String dictListName = "dictInfo.list";
-    private String localModelDir = "/home/q/www/models";
+    private String localModelDir = "./models";
     private String bucketName = "qunar";
     private List<ModelInfoSnapshot> modelInfoSnapshots;
     @Resource
     private AWS3Service awS3Service;
 
+    /**
+     * 模型管理器初始化
+     * <p>在 Spring 容器启动时自动执行，加载模型列表并初始化模型实例到缓存
+     * @throws IOException 模型初始化失败
+     * @throws Exception OSS连接失败
+     */
     @PostConstruct
     public void init() {
         try {
@@ -57,6 +63,12 @@ public class ModelManager {
         }
     }
 
+    /**
+     * 加载模型并预热
+     * @param modelInfoSnapshot 模型信息快照
+     * @param verifyModelWithVersion 模型版本标识
+     * @throws IllegalArgumentException 不支持的模型类型
+     */
     public void loadModel(ModelInfoSnapshot modelInfoSnapshot, String verifyModelWithVersion) {
         try {
             LOGGER.info("=== load model register, name={} version={}", modelInfoSnapshot.getModelName(),modelInfoSnapshot.getVersion());
@@ -78,12 +90,28 @@ public class ModelManager {
 
     }
 
+    /**
+     * 模型预热
+     * @param model 模型实例
+     */
     private void warmUp(Model model) {
         model.warmUp();
     }
 
+    /**
+     * 根据模型名获取最新版本模型
+     * @param modelName 模型名称
+     * @return 模型实例
+     * @throws ParamException 模型不存在
+     */
     public Model getModel(String modelName) {return getModel(modelName, -1);}
 
+    /**
+     * 根据模型Key获取模型
+     * @param modelKey 模型Key，格式：{modelName}_version_{version}
+     * @return 模型实例
+     * @throws ParamException 模型不存在
+     */
     public Model getModelFromKey(String modelKey){
         Model model = modelContainer.get(modelKey);
         if (model == null) {
@@ -92,6 +120,13 @@ public class ModelManager {
         return model;
     }
 
+    /**
+     * 根据模型名和版本获取模型
+     * @param modelName 模型名称
+     * @param version 模型版本，0或-1表示获取最新版本
+     * @return 模型实例
+     * @throws ParamException 模型不存在
+     */
     public Model getModel(String modelName, int version) {
 
         if (version == 0 || version == -1) {
@@ -108,6 +143,13 @@ public class ModelManager {
 
     }
 
+    /**
+     * 根据模型名搜索模型（模糊匹配版本）
+     * @param modelName 模型名称
+     * @param version 模型版本
+     * @return 模型实例
+     * @throws ParamException 模型不存在
+     */
     private Model searchModelByName(String modelName, int version) {
         return modelContainer.entrySet().stream()
                 .filter(entry->entry.getKey().startsWith(modelName + "_version"))
