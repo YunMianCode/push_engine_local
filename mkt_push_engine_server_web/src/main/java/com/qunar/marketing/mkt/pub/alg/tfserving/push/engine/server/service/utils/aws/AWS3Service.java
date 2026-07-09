@@ -25,6 +25,10 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+/**
+     * AWS S3服务
+     * <p>提供S3文件下载和解压功能，用于从OSS获取模型文件
+     */
 @Slf4j
 @Service
 public class AWS3Service {
@@ -34,12 +38,19 @@ public class AWS3Service {
     private  S3Client s3Client;
     private  String bucketName;
 
+    /**
+     * 构造函数
+     * @param aWS3Config S3配置
+     */
     @Autowired
     public AWS3Service(AWS3Config aWS3Config) {
         LOGGER.info("aws3ConfigMap: {}", aWS3Config.toString());
         this.configMap = aWS3Config.getConfigMap();
     }
 
+    /**
+     * 初始化S3客户端
+     */
     @PostConstruct
     public void init() {
         String endPoint = configMap.get("endPoint");
@@ -149,6 +160,12 @@ public class AWS3Service {
 //        }
 //    }
 
+    /**
+     * 解压ZIP文件到指定目录
+     * @param zipFilePath ZIP文件路径
+     * @param destDirectory 目标目录
+     * @throws IOException 解压失败
+     */
     public void unzipFile(String zipFilePath, String destDirectory) throws IOException{
         SafeZipHandler.safeUnzip(new File(zipFilePath), destDirectory);
         LOGGER.info("ZIP文件解压成功: {} -> {}", zipFilePath, destDirectory);
