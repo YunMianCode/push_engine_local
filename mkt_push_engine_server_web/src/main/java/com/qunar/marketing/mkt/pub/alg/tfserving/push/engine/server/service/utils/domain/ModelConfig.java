@@ -9,6 +9,10 @@ import org.tensorflow.proto.framework.DataType;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 模型配置类
+ * <p>封装模型的路径、类型、输入输出映射、特征配置等信息
+ */
 @Data
 @Builder
 public class ModelConfig {
