@@ -31,6 +31,12 @@ public class Model {
 
     private IPredictor predictor;
 
+    /**
+     * 创建模型实例
+     * @param modelNameWithVersion 模型名称及版本，格式：{modelName}_version_{version}
+     * @return 模型实例
+     * @throws IllegalArgumentException 不支持的模型类型
+     */
     public static Model getInstance(String modelNameWithVersion) {
         try {
             LOGGER.info("getInstance(modelNameWithVersion): {}",  modelNameWithVersion);
@@ -52,12 +58,22 @@ public class Model {
         }
     }
 
+    /**
+     * 加载模型配置并初始化预测器
+     * @param modelConfig 模型配置
+     */
     private void loadModel(ModelConfig modelConfig) {
         this.modelConfig = modelConfig;
         this.predictor = createPredictor(modelConfig);
         this.predictor.init(this.modelConfig);
     }
 
+    /**
+     * 根据模型类型创建预测器
+     * @param modelConfig 模型配置
+     * @return 预测器实例
+     * @throws IllegalArgumentException 不支持的模型类型
+     */
     private IPredictor createPredictor(ModelConfig modelConfig) {
 
         LOGGER.info("createPredictor(modelConfig): {}",  modelConfig.toString());
@@ -76,17 +92,31 @@ public class Model {
         }
     }
 
+    /**
+     * 执行模型预测
+     * @param predictParam 预测参数
+     * @return 预测结果
+     */
     public PredictResult predict(PredictParam predictParam) {
         LOGGER.info("predict(modelConfig): {}",  predictParam.toString());
         return this.predictor.predict(predictParam);
     }
 
+    /**
+     * 模型预热
+     */
     public void warmUp() {
         this.predictor.warmUp();
     }
 
 //    public void setModelFeature()
 
+    /**
+     * 读取模型属性配置文件
+     * @param propertyPath 属性文件路径
+     * @return 属性配置映射
+     * @throws IOException 文件读取失败
+     */
     private static  Map<String, Object> readProperty(String propertyPath) throws IOException {
 
         propertyPath = CommonConstants.MODEL_DIR + File.separator + propertyPath + File.separator + "property.json";
