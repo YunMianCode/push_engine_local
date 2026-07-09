@@ -17,11 +17,21 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+/**
+ * 文件工具类
+ * <p>提供文件读写、目录操作、压缩解压等工具方法
+ */
 public class FileUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUtils.class);
 
 
+    /**
+     * 获取文件读取器
+     * @param path 文件路径
+     * @return BufferedReader
+     * @throws FileNotFoundException 文件不存在
+     */
     public static BufferedReader getFileReader(String path) throws FileNotFoundException {
         InputStream stream = FileUtils.class.getClassLoader().getResourceAsStream(path);
 
@@ -31,11 +41,22 @@ public class FileUtils {
         return new BufferedReader(new InputStreamReader(stream));
     }
 
+    /**
+     * 判断文件是否存在
+     * @param path 文件路径
+     * @return true表示存在
+     */
     public static boolean exists(String path) {
         URL url = FileUtils.class.getClassLoader().getResource(path);
         return url != null || new File(path).isFile();
     }
 
+    /**
+     * 读取文件内容为字符串列表（按行）
+     * @param path 文件路径
+     * @return 字符串列表
+     * @throws IOException 读取失败
+     */
     public static List<String> getFileListContent(String path) throws IOException {
         BufferedReader reader = getFileReader(path);
         try {
@@ -120,17 +141,32 @@ public class FileUtils {
 
     private static final int  BUFFER_SIZE = 2 * 1024;
 
+    /**
+     * 判断目录是否存在
+     * @param path 目录路径
+     * @return true表示存在
+     */
     public static boolean dirExist(String path) {
         File file = new File(path);
         return file.isDirectory();
     }
 
+    /**
+     * 判断文件是否存在
+     * @param path 文件路径
+     * @return true表示存在
+     */
     public static boolean fileExist(String path) {
         File file = new File(path);
         return file.exists();
     }
 
 
+    /**
+     * 如果目录不存在则创建
+     * @param path 目录路径
+     * @return true表示创建成功或已存在
+     */
     public static boolean createIfNoDir(String path) {
         File file = new File(path);
         if (file.exists()) {
