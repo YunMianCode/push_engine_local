@@ -10,6 +10,9 @@ import javax.annotation.Resource;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Dubbo服务消费者实现
+ */
 @Service
 public class DubboConsumerServiceImpl implements DubboConsumerService {
 
@@ -22,6 +25,11 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
     @Resource
     private ApacheDubboFutureAsyncService apacheDubboFutureAsyncService;
 
+    /**
+     * 同步调用Blog查询
+     * @param blogId BlogID
+     * @return Blog对象
+     */
     @Override
     public Blog call(final Integer blogId) {
         try {
@@ -31,6 +39,11 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
         }
     }
 
+    /**
+     * BetterAsync异步调用Blog查询（方式一）
+     * @param blogId BlogID
+     * @return Blog对象
+     */
     @Override
     public Blog callBetterAsync1(final Integer blogId) {
         final ListenableFuture<Blog> future = dubboBetterAsyncServiceGenerate.longTaskSelectAsync(blogId);
@@ -41,6 +54,11 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
         }
     }
 
+    /**
+     * BetterAsync异步调用Blog查询（方式二）
+     * @param blogId BlogID
+     * @return Blog对象
+     */
     @Override
     public Blog callBetterAsync2(final Integer blogId) {
         final CompletableFuture<Blog> future = dubboBetterAsyncServiceGenerate.longTaskSelectNewQAsync(blogId);
@@ -51,11 +69,21 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
         }
     }
 
+    /**
+     * Future异步调用Blog查询
+     * @param blogId BlogID
+     * @return CompletableFuture异步结果
+     */
     @Override
     public CompletableFuture<Blog> apacheDubboFutureAsyncService(final Integer blogId) {
         return apacheDubboFutureAsyncService.select(blogId);
     }
 
+    /**
+     * 同步调用模型预测
+     * @param request 预测请求
+     * @return 预测响应
+     */
     @Override
     public AlgoInnerResponse callAlgo(AlgoInnerRequest request) {
         try {
@@ -65,6 +93,11 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
         }
     }
 
+    /**
+     * BetterAsync异步调用模型预测（方式一）
+     * @param request 预测请求
+     * @return 预测响应
+     */
     @Override
     public AlgoInnerResponse callAlgoAsync1(AlgoInnerRequest request) {
         final ListenableFuture<AlgoInnerResponse> future = dubboBetterAsyncServiceGenerate.predictAsync(request);
@@ -75,6 +108,11 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
         }
     }
 
+    /**
+     * BetterAsync异步调用模型预测（方式二）
+     * @param request 预测请求
+     * @return 预测响应
+     */
     @Override
     public AlgoInnerResponse callAlgoAsync2(AlgoInnerRequest request) {
         final CompletableFuture<AlgoInnerResponse> future = dubboBetterAsyncServiceGenerate.predictNewQAsync(request);
@@ -85,6 +123,11 @@ public class DubboConsumerServiceImpl implements DubboConsumerService {
         }
     }
 
+    /**
+     * Future异步调用模型预测
+     * @param request 预测请求
+     * @return CompletableFuture异步结果
+     */
     @Override
     public CompletableFuture<AlgoInnerResponse> apacheDubboAlogFutureAsync(AlgoInnerRequest request) {
         return apacheDubboFutureAsyncService.predict(request);
