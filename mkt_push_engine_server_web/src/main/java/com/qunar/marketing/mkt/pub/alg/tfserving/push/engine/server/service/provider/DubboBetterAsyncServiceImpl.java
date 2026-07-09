@@ -14,6 +14,10 @@ import qunar.tc.dubbo.async.AsyncImpl;
 
 import javax.annotation.Resource;
 
+/**
+ * Dubbo异步服务实现
+ * <p>提供模型预测和Blog查询的异步服务能力
+ */
 @AsyncImpl(DubboBetterAsyncService.class)
 @DubboService(version = "1.0.0")
 public class DubboBetterAsyncServiceImpl implements DubboBetterAsyncService {
@@ -22,11 +26,22 @@ public class DubboBetterAsyncServiceImpl implements DubboBetterAsyncService {
     @Resource
     private ModelServerService modelServerService;
 
+    /**
+     * 长任务查询Blog
+     * @param blogId BlogID
+     * @return Blog对象
+     */
     @Override
     public Blog longTaskSelect(Integer blogId) {
         return new Blog(blogId, "better async");
     }
 
+    /**
+     * 执行模型预测
+     * <p>支持CPU耗时统计，根据请求参数选择是否计算CPU时间
+     * @param request 预测请求
+     * @return 预测响应
+     */
     @Override
     public AlgoInnerResponse predict(AlgoInnerRequest request) {
 
