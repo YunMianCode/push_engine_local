@@ -303,24 +303,28 @@ public class TFPredictor implements IPredictor {
     }
 
     boolean CheckModelConfig() {
-        Map<String, long[]> inputShapes = this.modelConfig.getInputShapes();
-        HashSet<String> names = new HashSet<>(inputShapes.keySet());
+        // 收集 saved_model 实际签名中的输入/输出 tensor 名，用于与 tensor.yml 声明做比对
+        HashSet<String> actualInputNames = new HashSet<>(this.modelConfig.getInputShapes().keySet());
+        HashSet<String> actualOutputNames = new HashSet<>(this.modelConfig.getOutputShapes().keySet());
+
+        // 校验 tensor.yml 声明的每个输入都在 saved_model 实际签名中存在
         TensorModelConfig tensorModelConfig = this.modelConfig.getTensorModelConfig();
-        HashSet<String> tensorNames = new HashSet<>();
         for (TensorModelConfig.InputConfig intputConfig : tensorModelConfig.getInputs()) {
-            tensorNames.add(intputConfig.getName());
-            if (!names.contains(intputConfig.getName())) {
+            if (!actualInputNames.contains(intputConfig.getName())) {
                 log.warn("Input name not found: " + intputConfig.getName());
                 return false;
             }
         }
+
+        // 校验 tensor.yml 声明的输出在 saved_model 实际签名中存在
         String outPutName = tensorModelConfig.getOutputs().getName();
-        Map<String, long[]> outputShapes = this.modelConfig.getOutputShapes();
-        HashSet<String> outputNames = new HashSet<>(outputShapes.keySet());
-        if (!outputNames.contains(outPutName)) {
+        if (!actualOutputNames.contains(outPutName)) {
             log.warn("Output name not found: " + outPutName);
             return false;
         }
+
+        log.info("Model config check passed, inputs={}, outputs={}",
+                tensorModelConfig.getInputs().size(), outPutName);
         return true;
     }
 

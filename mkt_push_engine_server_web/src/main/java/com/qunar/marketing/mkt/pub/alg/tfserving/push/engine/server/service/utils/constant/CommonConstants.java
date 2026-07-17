@@ -19,5 +19,9 @@ public class CommonConstants {
      * 监控名称
      */
     public static final String MONITOR_NAME = "modelPredict";
-    public static final String MODEL_DIR = "/home/q/www/models";
+
+    /**
+     * 模型目录路径
+     */
+    public static final String MODEL_DIR = "./models";
 }

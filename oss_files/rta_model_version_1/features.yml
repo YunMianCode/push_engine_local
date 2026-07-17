@@ -1,0 +1,4 @@
+features:
+  - featuregroups: user_id
+    featuresnames: [ip, device_type, model, model_detail, city_level, city_nature, install_app_list, pre_click_count, strategy_click_count, seed_click_count, low_price_click_count, age, gender, Qunar_install, consumption_level_id, jiugongge_click_pv, bigsearch_click_count, diff_date, open_qunar_app]
+    featuresdtype: [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 1, 7]

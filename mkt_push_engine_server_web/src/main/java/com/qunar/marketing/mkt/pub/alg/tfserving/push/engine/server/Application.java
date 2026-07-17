@@ -11,4 +11,8 @@ import org.springframework.context.annotation.PropertySource;
         "classpath:redis.properties"
 })
 public class Application extends SpringBootServletInitializer {
+
+    public static void main(String[] args) {
+        org.springframework.boot.SpringApplication.run(Application.class, args);
+    }
 }

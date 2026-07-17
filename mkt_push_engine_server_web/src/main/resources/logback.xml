@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <property name="LOG_PATH" value="./logs"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS} %thread %-5p %c{36}] %m%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>${catalina.base}/logs/info.log</File>
+        <File>${LOG_PATH}/info.log</File>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${catalina.base}/logs/info.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/info.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder charset="UTF-8">
@@ -12,16 +20,29 @@
     </appender>
 
     <appender name="async_info" class="ch.qos.logback.classic.AsyncAppender">
-        <!-- 设置队列大小, 该值会影响性能, 根据你的应用需求调整 -->
         <queueSize>512</queueSize>
-        <!-- 队列放满时是否阻塞调用线程, 该值会影响性能, 根据你的应用需求调整 -->
         <neverBlock>true</neverBlock>
         <discardingThreshold>0</discardingThreshold>
         <includeCallerData>true</includeCallerData>
         <appender-ref ref="info" />
     </appender>
 
+    <appender name="CONSOLE_THROTTLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS} %thread %-5p %c{36}] %m%n</pattern>
+        </encoder>
+
+    </appender>
+
+    <logger name="com.qunar.redis.storage" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE_THROTTLE"/>
+        <appender-ref ref="async_info"/>
+    </logger>
+
+    <logger name="com.qunar.flight.qmonitor" level="WARN"/>
+
     <root level="info">
+        <appender-ref ref="CONSOLE" />
         <appender-ref ref="async_info" />
     </root>
 </configuration>

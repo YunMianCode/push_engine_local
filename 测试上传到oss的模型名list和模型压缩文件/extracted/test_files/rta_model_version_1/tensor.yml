@@ -1,0 +1,67 @@
+inputs: 
+  - name: serving_default_Qunar_install
+    features: [Qunar_install]
+    dtype: DT_FLOAT
+  - name: serving_default_activate
+    features: [activate]
+    dtype: DT_FLOAT
+  - name: serving_default_age
+    features: [age]
+    dtype: DT_FLOAT
+  - name: serving_default_click_time
+    features: [click_time]
+    dtype: DT_STRING
+  - name: serving_default_consumption_level_id
+    features: [consumption_level_id]
+    dtype: DT_FLOAT
+  - name: serving_default_device_type
+    features: [device_type]
+    dtype: DT_STRING
+  - name: serving_default_diff_date
+    features: [diff_date]
+    dtype: DT_FLOAT
+  - name: serving_default_gender
+    features: [gender]
+    dtype: DT_FLOAT
+  - name: serving_default_ip
+    features: [ip]
+    dtype: DT_STRING
+  - name: serving_default_jiugongge_click_pv
+    features: [jiugongge_click_pv]
+    dtype: DT_FLOAT
+  - name: serving_default_model_detail
+    features: [model_detail]
+    dtype: DT_STRING
+  - name: serving_default_note_id_count
+    features: [note_id_count]
+    dtype: DT_FLOAT
+  - name: serving_default_today_activate
+    features: [today_activate]
+    dtype: DT_FLOAT
+  - name: serving_default_ua
+    features: [ua]
+    dtype: DT_STRING
+  - name: serving_default_bigsearch_click_count
+    features: [bigsearch_click_count]
+    dtype: DT_FLOAT
+  - name: serving_default_city
+    features: [city]
+    dtype: DT_STRING
+  - name: serving_default_click_count
+    features: [click_count]
+    dtype: DT_FLOAT
+  - name: serving_default_holiday_index
+    features: [holiday_index]
+    dtype: DT_FLOAT
+  - name: serving_default_install_app_list
+    features: [install_app_list]
+    dtype: DT_STRING
+  - name: serving_default_model
+    features: [model]
+    dtype: DT_STRING
+  - name: serving_default_province
+    features: [province]
+    dtype: DT_STRING
+outputs:
+    name: StatefulPartitionedCall
+    dtype: DT_FLOAT

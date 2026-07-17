@@ -5,23 +5,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.awt.*;
 import java.util.*;
-import java.util.List;
 
 @Service
 @Slf4j
 public class FeaturePlatformServer {
 
-   @Resource(name="featureStorge")
-   private Sedis3 featureStorge;
+    @Resource(name="featureStorge")
+    private Sedis3 featureStorge;
 
     @Resource(name="featureStorge1")
     private Sedis3 featureStorge1;
 
     @Resource(name="featureStorge2")
     private Sedis3 featureStorge2;
-
 
     public FeatureValues getFeatureValues(Map<String, List<String>> featureskey, Map<String, List<Integer>> featuresD, String user_id, List<String> item_ids) {
         List<String> userFeatureName = featureskey.get("user_id");
@@ -46,13 +43,18 @@ public class FeaturePlatformServer {
 
     public FeatureValues getUserFeature(List<String> feature_names, List<Integer> featuresD, String user_id) {
         FeatureValues featuserValues = new FeatureValues();
-//        log.info("feature_names: " + feature_names);
-//        log.info("featuresD: " + featuresD);
-//        log.info("user_id: " + user_id);
-        long start1 = System.currentTimeMillis();
-        List<String> featurevaues = featureStorge.hmget("user:" + user_id, feature_names.toArray(new String[0]));
-        log.info("redis time: {} ", System.currentTimeMillis() - start1);
-//        log.info("featurevaues: " + featurevaues.toString());
+        List<String> featurevaues;
+        try {
+            if (featureStorge == null) {
+                throw new Exception("featureStorge is null");
+            }
+            long start1 = System.currentTimeMillis();
+            featurevaues = featureStorge.hmget("user:" + user_id, feature_names.toArray(new String[0]));
+            log.info("redis time: {} ", System.currentTimeMillis() - start1);
+        } catch (Exception e) {
+            log.error("Redis获取用户特征失败(user:{})，强制要求Redis访问: {}", user_id, e.getMessage());
+            throw new RuntimeException("强制要求Redis访问，获取用户特征失败: " + e.getMessage(), e);
+        }
         fillfeatureValues(featuserValues, feature_names, featurevaues, featuresD);
         return featuserValues;
     }
@@ -65,7 +67,16 @@ public class FeaturePlatformServer {
         List<FeatureValues> itemFeatures = new ArrayList<>();
         for (String item_id : item_ids) {
             FeatureValues featureValues = new FeatureValues();
-            List<String> featurevaues = featureStorge1.hmget("item:" + item_id, feature_names.toArray(new String[0]));
+            List<String> featurevaues;
+            try {
+                if (featureStorge1 == null) {
+                    throw new Exception("featureStorge1 is null");
+                }
+                featurevaues = featureStorge1.hmget("item:" + item_id, feature_names.toArray(new String[0]));
+            } catch (Exception e) {
+                log.error("Redis获取物品特征失败(item:{})，强制要求Redis访问: {}", item_id, e.getMessage());
+                throw new RuntimeException("强制要求Redis访问，获取物品特征失败: " + e.getMessage(), e);
+            }
             fillfeatureValues(featureValues, feature_names, featurevaues, featuresD);
             itemFeatures.add(featureValues);
         }
@@ -79,12 +90,20 @@ public class FeaturePlatformServer {
         List<FeatureValues> useritemFeatures = new ArrayList<>();
         for (String item_id : item_ids) {
             FeatureValues featureValues = new FeatureValues();
-            List<String> featurevaues = featureStorge2.hmget("user_item:" + user_id + "_" + item_id, feature_names.toArray(new String[0]));
+            List<String> featurevaues;
+            try {
+                if (featureStorge2 == null) {
+                    throw new Exception("featureStorge2 is null");
+                }
+                featurevaues = featureStorge2.hmget("user_item:" + user_id + "_" + item_id, feature_names.toArray(new String[0]));
+            } catch (Exception e) {
+                log.error("Redis获取用户物品特征失败(user:{},item:{})，强制要求Redis访问: {}", user_id, item_id, e.getMessage());
+                throw new RuntimeException("强制要求Redis访问，获取用户物品特征失败: " + e.getMessage(), e);
+            }
             fillfeatureValues(featureValues, feature_names, featurevaues, featuresD);
             useritemFeatures.add(featureValues);
         }
         return useritemFeatures;
-
     }
 
     public static void fillfeatureValues(FeatureValues featureValues, List<String> feature_names, List<String> featurevaues,  List<Integer> featuresD) {
@@ -96,12 +115,30 @@ public class FeaturePlatformServer {
             String feature_value = featurevaues.get(kk);
             String feature_name = feature_names.get(kk);
             Integer feature_dtype = featuresD.get(kk);
+            if (feature_value == null || feature_value.trim().isEmpty()) {
+                if (feature_dtype == 1 || feature_dtype == 11) {
+                    floatFeatureValues.put(feature_name, new float[][]{{0.0f}});
+                } else if (feature_dtype == 2 || feature_dtype == 22) {
+                    intFeatureValues.put(feature_name, new int[][]{{0}});
+                } else if (feature_dtype == 7 || feature_dtype == 77) {
+                    stringFeatureValues.put(feature_name, new String[][]{{"mock"}});
+                }
+                continue;
+            }
             if (feature_dtype == 1) {
-                floatFeatureValues.put(feature_name, new float[][]{{ Float.parseFloat(feature_value) }});
+                try {
+                    floatFeatureValues.put(feature_name, new float[][]{{Float.parseFloat(feature_value)}});
+                } catch (NumberFormatException e) {
+                    floatFeatureValues.put(feature_name, new float[][]{{0.0f}});
+                }
             } else if (feature_dtype == 7) {
-                stringFeatureValues.put(feature_name, new String[][]{{ feature_value }});
+                stringFeatureValues.put(feature_name, new String[][]{{feature_value}});
             } else if (feature_dtype == 2) {
-                intFeatureValues.put(feature_name, new int[][]{{ Integer.parseInt(feature_value) }});
+                try {
+                    intFeatureValues.put(feature_name, new int[][]{{Integer.parseInt(feature_value)}});
+                } catch (NumberFormatException e) {
+                    intFeatureValues.put(feature_name, new int[][]{{0}});
+                }
             } else if (feature_dtype == 11) {
                 String[] values = feature_value.split(",");
                 float[] result = new float[values.length];
@@ -124,19 +161,29 @@ public class FeaturePlatformServer {
                 results[0] = values;
                 stringFeatureValues.put(feature_name, results);
             }  else if (feature_dtype == 22) {
-                String[] values = feature_value.split(",");
-                int[] result = Arrays.stream(values).mapToInt(Integer::parseInt).toArray();
-                int[][] results = new int[1][];
-                results[0] = result;
-                intFeatureValues.put(feature_name, results);
+                try {
+                    String[] values = feature_value.split(",");
+                    int[] result = Arrays.stream(values)
+                            .map(s -> {
+                                try {
+                                    return Integer.parseInt(s.trim());
+                                } catch (NumberFormatException e) {
+                                    return 0;
+                                }
+                            })
+                            .mapToInt(Integer::intValue)
+                            .toArray();
+                    int[][] results = new int[1][];
+                    results[0] = result;
+                    intFeatureValues.put(feature_name, results);
+                } catch (Exception e) {
+                    intFeatureValues.put(feature_name, new int[][]{{0}});
+                }
             } else {
                 log.error("-----------error dtype");
             }
         }
         log.info("fill feature time: {} ", System.currentTimeMillis() - start1);
-//        log.info("fillfeatureValues float: " + printHashFloat(floatFeatureValues));
-//        log.info("fillfeatureValues int: " + printHashInt(intFeatureValues));
-//        log.info("fillfeatureValues string: " + printHashString(stringFeatureValues));
         featureValues.setFloatFeatureValues(floatFeatureValues);
         featureValues.setIntFeatureValues(intFeatureValues);
         featureValues.setStringFeatureValues(stringFeatureValues);
@@ -203,11 +250,9 @@ public class FeaturePlatformServer {
             featureValues.getStringFeatureValues().put(feature_name, values);
         }
         return featureValues;
-
     }
 
     public static FeatureValues merge2(FeatureValues featureValues1, FeatureValues featureValues2) {
-        //FeatureValues featureValues = new FeatureValues();
         featureValues2.getIntFeatureValues().forEach((k,v) ->{
             featureValues1.getIntFeatureValues().put(k, v);
         });
@@ -317,6 +362,7 @@ public class FeaturePlatformServer {
         }
         return sb.toString();
     }
+
     public static String printHashString(Map<String, String[][]> data) {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, String[][]> entry : data.entrySet()) {
@@ -326,6 +372,4 @@ public class FeaturePlatformServer {
         }
         return sb.toString();
     }
-
-
 }

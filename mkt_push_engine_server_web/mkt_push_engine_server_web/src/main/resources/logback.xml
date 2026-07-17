@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- scan=true 后 logback 每 60s 扫描一次本文件，改 logger 级别无需重启即可生效；
+     排查慢请求时可临时加 <logger name="...server" level="DEBUG"/>，排查完务必删除 -->
+<configuration scan="true" scanPeriod="60 seconds">
+    <appender name="info" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${catalina.base}/logs/info.log</File>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${catalina.base}/logs/info.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder charset="UTF-8">
+            <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS} %X{QTRACER} %thread %-5p %c{36}] %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="async_info" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 设置队列大小, 该值会影响性能, 根据你的应用需求调整 -->
+        <queueSize>512</queueSize>
+        <!-- 队列放满时是否阻塞调用线程, 该值会影响性能, 根据你的应用需求调整 -->
+        <neverBlock>true</neverBlock>
+        <discardingThreshold>0</discardingThreshold>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="info" />
+    </appender>
+
+    <!-- 抑制后台线程的周期性心跳噪音日志：Sedis 集群配置刷新、qmonitor 定时器 -->
+    <logger name="com.qunar.redis.storage" level="WARN"/>
+    <logger name="com.qunar.tc.redis" level="WARN"/>
+    <logger name="com.qunar.flight.qmonitor" level="WARN"/>
+    <!-- 抑制 ZooKeeper 启动时打印的超长 classpath/library.path 环境日志（Client environment:...），
+         不影响会话超时/断连等 WARN 以上级别的真实告警 -->
+    <logger name="org.apache.zookeeper" level="WARN"/>
+
+    <!-- 抑制框架启动/注册噪声：dubbo 注册订阅、qconfig 远程文件加载、QTracer 配置 dump、
+         metrics 周期请求、qunar web 处理器代理提示。仅保留 WARN 以上真实告警 -->
+    <logger name="org.apache.dubbo" level="WARN"/>
+    <logger name="q.tc.qconfig.client.impl.FileStore" level="WARN"/>
+    <logger name="q.m.sampler.TraceConfigForCommonUtil" level="WARN"/>
+    <logger name="qunar.metrics.watcher.WatchRequest" level="WARN"/>
+    <logger name="q.w.a.ModifyRequestMappingHandlerAdapterProcessor" level="ERROR"/>
+
+    <!-- 排查慢请求时临时打开业务包 DEBUG（见文件头说明），排查完务必删除 -->
+    <!-- <logger name="com.qunar.marketing.mkt.pub.alg.tfserving.push.engine.server" level="DEBUG"/> -->
+
+    <root level="info">
+        <appender-ref ref="async_info" />
+    </root>
+</configuration>
